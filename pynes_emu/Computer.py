@@ -1,5 +1,5 @@
-from pynes_emu.Cpu import Cpu, PC_START_INDIRECT_LOCATION
-from pynes_emu.Memory import Memory
+from pynes_emu.cpu import Cpu, PC_START_INDIRECT_LOCATION
+from pynes_emu.memory import Memory
 
 
 class Computer:

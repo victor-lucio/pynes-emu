@@ -1,5 +1,5 @@
-from pynes_emu.Models import Addressing, ProcessorStatus, INSTRUCTION_SET
-from pynes_emu.Memory import Memory
+from pynes_emu.models import Addressing, ProcessorStatus, INSTRUCTION_SET
+from pynes_emu.memory import Memory
 
 
 # Where in Memory to find the start of the program
