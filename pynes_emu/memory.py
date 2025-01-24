@@ -1,5 +1,5 @@
 class Memory(list):
-    def __init__(self, size: int = 0xFFFF + 1):
+    def __init__(self, size: int = 0xFFFF):
         super().__init__([0x00] * size)
 
     def __getitem__(self, key):
