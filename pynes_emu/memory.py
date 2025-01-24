@@ -38,6 +38,8 @@ class Memory:
             self._memory[address] = value_lo
             # then first byte
             self._memory[address + 1] = value_hi
+        elif isinstance(key, slice) and isinstance(value, list):
+            masked_values = [single_value & 0xFF for single_value in value]
+            self._memory[key] = masked_values
         else:
             self._memory[key] = value & 0xFF
-        return
