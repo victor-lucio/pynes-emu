@@ -382,5 +382,4 @@ class Cpu:
         self._push_stack(hi_result)
         self._push_stack(lo_result)
         self._push_stack(self.reg_p.to_int())
-        self.pc = self.memory[0xFFFE, 2]
         self.reg_p.B = 1
