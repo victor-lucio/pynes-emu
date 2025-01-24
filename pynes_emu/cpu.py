@@ -129,7 +129,7 @@ class Cpu:
         self.reg_a = result
         self._set_zero_and_negative(result)
 
-    def _execute_SBC(self, data):
+    def _execute_SBC(self, data, _):
         data = ~data + 1
         self._execute_ADC(data)
 
