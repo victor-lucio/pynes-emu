@@ -108,7 +108,7 @@ class Cpu:
         return self.memory[0x0100 + self.reg_s]
 
     def _set_zero_and_negative(self, value):
-        self.reg_p.Z = value == 0
+        self.reg_p.Z = int(value == 0)
         self.reg_p.N = value >> 7
 
     def _execute(self, inst_name: str, addressing_mode: Addressing, inst_data: int):
