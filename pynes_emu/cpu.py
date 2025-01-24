@@ -320,15 +320,15 @@ class Cpu:
         value = self._pop_stack()
         self.reg_p = self.reg_p.from_int(value)
 
-    def _execute_LDA(self, data):
+    def _execute_LDA(self, data, _):
         self.reg_a = data
         self._set_zero_and_negative(self.reg_a)
 
-    def _execute_LDX(self, data):
+    def _execute_LDX(self, data, _):
         self.reg_x = data
         self._set_zero_and_negative(self.reg_x)
 
-    def _execute_LDY(self, data):
+    def _execute_LDY(self, data, _):
         self.reg_y = data
         self._set_zero_and_negative(self.reg_y)
 
