@@ -4,7 +4,7 @@ from pynes_emu.memory import Memory
 
 class Computer:
     def __init__(self):
-        self.memory = Memory(0xFFFF)
+        self.memory = Memory()
         self._copy_program_to_memory()
 
         self.cpu = Cpu(memory=self.memory)
