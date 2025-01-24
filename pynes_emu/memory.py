@@ -1,6 +1,6 @@
-class Memory:
-    def __init__(self, size: int = 0x2_000):
-        self._memory = [0x00] * size
+class Memory(list):
+    def __init__(self, size: int = 0xFFFF + 1):
+        super().__init__([0x00] * size)
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
@@ -11,8 +11,8 @@ class Memory:
                 )
 
             # Read the two bytes in little-endian order
-            lo_value = self._memory[address]
-            hi_value = self._memory[address + 1]
+            lo_value = super().__getitem__(address)
+            hi_value = super().__getitem__(address + 1)
 
             # Convert to little-endian
             value = (hi_value << 8) + lo_value
@@ -21,7 +21,7 @@ class Memory:
             return value & 0xFFFF
         else:
             # Single byte read (8-bit)
-            return self._memory[key]
+            return super().__getitem__(key)
 
     def __setitem__(self, key: int, value: int):
         if isinstance(key, tuple):
@@ -35,11 +35,11 @@ class Memory:
             value_hi = (value >> 8) & 0xFF
 
             # last byte first
-            self._memory[address] = value_lo
+            super().__setitem__(address, value_lo)
             # then first byte
-            self._memory[address + 1] = value_hi
+            super().__setitem__(address + 1, value_hi)
         elif isinstance(key, slice) and isinstance(value, list):
             masked_values = [single_value & 0xFF for single_value in value]
-            self._memory[key] = masked_values
+            super().__setitem__(key, masked_values)
         else:
-            self._memory[key] = value & 0xFF
+            super().__setitem__(key, value & 0xFF)
