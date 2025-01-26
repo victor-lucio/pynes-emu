@@ -55,11 +55,11 @@ class Cpu:
         return f"""\
             CPU Status:
             ----------
-            Accumulator (A): ${self.reg_a:04X}
-            Index X:         ${self.reg_x:04X}
-            Index Y:         ${self.reg_y:04X}
-            Stack Pointer:   ${self.reg_s:04X}
-            Program Counter: ${self.pc:04X}
+            Accumulator (A): ${self.reg_a:04X}h (${self.reg_a:d}d)
+            Index X:         ${self.reg_x:04X}h (${self.reg_x:d}d)
+            Index Y:         ${self.reg_y:04X}h (${self.reg_y:d}d)
+            Stack Pointer:   ${self.reg_s:04X}h (${self.reg_s:d}d)
+            Program Counter: ${self.pc:04X}h (${self.pc:d}d)
 
             Status Flags (NV-BDIZC): {status_flags}
             N (Negative):  {self.reg_p.N}
@@ -115,6 +115,11 @@ class Cpu:
         data, address = addressing_mode.get_addressing_data(
             self.memory, inst_data, self.reg_x, self.reg_y
         )
+
+        print(f"Executing {inst_name}")
+        print(f"Data: {data:04X}" if data is not None else "")
+        print(f"Address: {address:04X}" if address is not None else "")
+
         getattr(self, f"_execute_{inst_name}")(data, address)
 
     def _execute_ADC(self, data, _):
@@ -269,7 +274,7 @@ class Cpu:
 
     def _execute_DEC(self, data, address):
         result = data - 1
-        data[address] = result
+        self.memory[address] = result
         self._set_zero_and_negative(result)
 
     def _execute_DEX(self, *args):
@@ -282,7 +287,7 @@ class Cpu:
 
     def _execute_INC(self, data, address):
         result = data + 1
-        data[address] = result
+        self.memory[address] = result
         self._set_zero_and_negative(result)
 
     def _execute_INX(self, *args):
@@ -344,13 +349,13 @@ class Cpu:
         self.pc = result
 
     def _execute_STA(self, data, address):
-        data[address] = self.reg_a
+        self.memory[address] = self.reg_a
 
     def _execute_STX(self, data, address):
-        data[address] = self.reg_x
+        self.memory[address] = self.reg_x
 
     def _execute_STY(self, data, address):
-        data[address] = self.reg_y
+        self.memory[address] = self.reg_y
 
     def _execute_TAY(self, *args):
         self.reg_y = self.reg_a
