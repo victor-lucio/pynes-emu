@@ -65,22 +65,43 @@ class Addressing(Enum):
         return (None, None)
 
     def _direct_access(data, memory, *_):
-        return (memory[data], data)
+        if data >> 8:
+            # convert address to big endian
+            data_lo = data & 0xFF
+            data_hi = (data >> 8) & 0xFF
+            data_be = (data_lo << 8) + data_hi
+            return (memory[data_be], data_be)
+        else:
+            return (memory[data], data)
 
-    def _shifted_access_x(data, memory, reg_x, *_):
+    def _shifted_access_x_zp(data, memory, reg_x, *_):
+        return (memory[(data + reg_x) & 0xFF], (data + reg_x) & 0xFF)
+
+    def _shifted_access_y_zp(data, memory, reg_y, *_):
+        return (memory[(data + reg_y) & 0xFF], (data + reg_y) & 0xFF)
+
+    def _shifted_access_x_abs(data, memory, reg_x, *_):
         return (memory[data + reg_x], data + reg_x)
 
-    def _shifted_access_y(data, memory, reg_y, *_):
+    def _shifted_access_y_abs(data, memory, reg_y, *_):
         return (memory[data + reg_y], data + reg_y)
 
     def _indirect_access(data, memory, *_):
         return (memory[memory[data]], memory[data])
 
-    def _indirect_shifted_access_x(data, memory, reg_x, _):
-        return (memory[memory[data] + reg_x], memory[data])
+    def _indexed_indirect_access(data, memory, reg_x, _):
+        address_lo = memory[data + reg_x]
+        address_hi = memory[data + reg_x + 1]
+        address = (address_hi << 8) + address_lo
+        data = memory[address]
+        return (data, address)
 
-    def _indirect_shifted_access_y(data, memory, _, reg_y):
-        return (memory[memory[data] + reg_y], memory[data])
+    def _indirect_indexed_access(data, memory, _, reg_y):
+        address_lo = memory[data] + reg_y
+        address_hi = memory[data + 1]
+        address = (address_hi << 8) + address_lo
+        data = memory[address]
+        return (data, address)
 
     # No memory access Addressing
     IMMEDIATE = partial(_direct_value)
@@ -89,14 +110,14 @@ class Addressing(Enum):
     IMPLIED = partial(_no_value)
     # Memory access Addressing
     ZERO_PAGE = partial(_direct_access)
-    ZERO_PAGE_X = partial(_shifted_access_x)
-    ZERO_PAGE_Y = partial(_shifted_access_y)
+    ZERO_PAGE_X = partial(_shifted_access_x_zp)
+    ZERO_PAGE_Y = partial(_shifted_access_y_zp)
     ABSOLUTE = partial(_direct_access)
-    ABSOLUTE_X = partial(_shifted_access_x)
-    ABSOLUTE_Y = partial(_shifted_access_y)
+    ABSOLUTE_X = partial(_shifted_access_x_abs)
+    ABSOLUTE_Y = partial(_shifted_access_y_abs)
     INDIRECT = partial(_indirect_access)
-    INDIRECT_X = partial(_indirect_shifted_access_x)
-    INDIRECT_Y = partial(_indirect_shifted_access_y)
+    INDIRECT_X = partial(_indexed_indirect_access)
+    INDIRECT_Y = partial(_indirect_indexed_access)
 
     def get_addressing_data(self, memory, data, reg_x, reg_y) -> tuple[int, int]:
         return self.value(data, memory, reg_x, reg_y)
