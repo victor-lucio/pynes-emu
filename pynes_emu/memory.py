@@ -43,3 +43,12 @@ class Memory(list):
             super().__setitem__(key, masked_values)
         else:
             super().__setitem__(key, value & 0xFF)
+
+    def __repr__(self):
+        output = []
+        for i, value in enumerate(self):
+            if i > 0x2000:
+                break
+            elif value != 0:
+                output.append(f"${i:04X}h: ${value:02X}h ({value:d}d)")
+        return "\n".join(output)
