@@ -117,8 +117,9 @@ class Cpu:
         )
 
         print(f"Executing {inst_name}")
-        print(f"Data: {data:04X}" if data is not None else "")
-        print(f"Address: {address:04X}" if address is not None else "")
+        print(f"Inst Data: {inst_data:04X}h ({inst_data:d}d)")
+        print(f"Data: {data:04X}h ({data:d}d)" if data is not None else "")
+        print(f"Address: {address:04X}h ({address:d}d)" if address is not None else "")
 
         getattr(self, f"_execute_{inst_name}")(data, address)
 
