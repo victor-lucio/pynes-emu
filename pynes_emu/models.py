@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import partial
 from dataclasses import dataclass
-
+from pynes_emu.utils import address_to_big_endian
 
 @dataclass
 class ProcessorStatus:
@@ -64,30 +64,30 @@ class Addressing(Enum):
     def _no_value(*_):
         return (None, None)
 
-    def _direct_access(data, memory, *_):
-        if data >> 8:
-            # convert address to big endian
-            data_lo = data & 0xFF
-            data_hi = (data >> 8) & 0xFF
-            data_be = (data_lo << 8) + data_hi
-            return (memory[data_be], data_be)
-        else:
-            return (memory[data], data)
+    def _direct_access_zp(data, memory, *_):
+        return (memory[data], data)
 
-    def _shifted_access_x_zp(data, memory, reg_x, *_):
+    def _direct_access_abs(data, memory, *_):
+        data_be = address_to_big_endian(data)
+        return (memory[data_be], data_be)
+
+    def _shifted_access_x_zp(data, memory, reg_x, _):
         return (memory[(data + reg_x) & 0xFF], (data + reg_x) & 0xFF)
 
-    def _shifted_access_y_zp(data, memory, reg_y, *_):
+    def _shifted_access_y_zp(data, memory, _, reg_y):
         return (memory[(data + reg_y) & 0xFF], (data + reg_y) & 0xFF)
 
-    def _shifted_access_x_abs(data, memory, reg_x, *_):
-        return (memory[data + reg_x], data + reg_x)
+    def _shifted_access_x_abs(data, memory, reg_x, _):
+        data_be = address_to_big_endian(data)
+        return (memory[data_be + reg_x], data_be + reg_x)
 
-    def _shifted_access_y_abs(data, memory, reg_y, *_):
-        return (memory[data + reg_y], data + reg_y)
+    def _shifted_access_y_abs(data, memory, _, reg_y):
+        data_be = address_to_big_endian(data)
+        return (memory[data_be + reg_y], data_be + reg_y)
 
     def _indirect_access(data, memory, *_):
-        return (memory[memory[data]], memory[data])
+        data_be = address_to_big_endian(data)
+        return (memory[memory[data_be]], memory[data_be])
 
     def _indexed_indirect_access(data, memory, reg_x, _):
         address_lo = memory[data + reg_x]
@@ -109,10 +109,10 @@ class Addressing(Enum):
     ACCUMULATOR = partial(_no_value)
     IMPLIED = partial(_no_value)
     # Memory access Addressing
-    ZERO_PAGE = partial(_direct_access)
+    ZERO_PAGE = partial(_direct_access_zp)
     ZERO_PAGE_X = partial(_shifted_access_x_zp)
     ZERO_PAGE_Y = partial(_shifted_access_y_zp)
-    ABSOLUTE = partial(_direct_access)
+    ABSOLUTE = partial(_direct_access_abs)
     ABSOLUTE_X = partial(_shifted_access_x_abs)
     ABSOLUTE_Y = partial(_shifted_access_y_abs)
     INDIRECT = partial(_indirect_access)
