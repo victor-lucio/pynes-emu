@@ -122,5 +122,5 @@ class Computer:
                 self._draw_screen()
                 self._last_screen = screen_memory.copy()
             
-            time.sleep(0.0005)
+            time.sleep(0.00025)
 
