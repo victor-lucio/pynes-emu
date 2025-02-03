@@ -3,6 +3,7 @@ from functools import partial
 from dataclasses import dataclass
 from pynes_emu.utils import address_to_big_endian
 
+
 @dataclass
 class ProcessorStatus:
     N: int = 0  # Negative
