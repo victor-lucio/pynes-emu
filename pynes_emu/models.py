@@ -61,6 +61,11 @@ class Addressing(Enum):
     def _direct_value(data, *_):
         return (data, None)
 
+    def _direct_value_signed(data, *_):
+        if data >> 7:
+            return (data - 256, None)
+        return (data, None)
+
     def _no_value(*_):
         return (None, None)
 
@@ -87,7 +92,7 @@ class Addressing(Enum):
 
     def _indirect_access(data, memory, *_):
         data_be = address_to_big_endian(data)
-        return (memory[memory[data_be]], memory[data_be])
+        return (memory[memory[data_be, 2]], memory[data_be, 2])
 
     def _indexed_indirect_access(data, memory, reg_x, _):
         address_lo = memory[data + reg_x]
@@ -105,7 +110,7 @@ class Addressing(Enum):
 
     # No memory access Addressing
     IMMEDIATE = partial(_direct_value)
-    RELATIVE = partial(_direct_value)
+    RELATIVE = partial(_direct_value_signed)
     ACCUMULATOR = partial(_no_value)
     IMPLIED = partial(_no_value)
     # Memory access Addressing

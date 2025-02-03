@@ -87,6 +87,7 @@ class Cpu:
 
     def _fetch_next(self):
         op_hex = self.memory[self.pc]
+        print(f"PC: {self.pc:04X}h ({self.pc:d}d)")
         inst_name, addressing_mode, inst_size = INSTRUCTION_SET[op_hex]
 
         inst_data = 0
@@ -108,6 +109,7 @@ class Cpu:
         return self.memory[0x0100 + self.reg_s]
 
     def _set_zero_and_negative(self, value):
+        value = value & 0xFF
         self.reg_p.Z = int(value == 0)
         self.reg_p.N = value >> 7
 
@@ -116,7 +118,7 @@ class Cpu:
             self.memory, inst_data, self.reg_x, self.reg_y
         )
 
-        print(f"Executing {inst_name}")
+        print(f"Executing {inst_name}, {addressing_mode}")
         print(f"Inst Data: {inst_data:04X}h ({inst_data:d}d)")
         print(f"Data: {data:04X}h ({data:d}d)" if data is not None else "")
         print(f"Address: {address:04X}h ({address:d}d)" if address is not None else "")
@@ -127,17 +129,17 @@ class Cpu:
         # check overflow
         a7 = self.reg_a >> 7
         d7 = data >> 7
-        result = self.reg_a + data
+        result = self.reg_a + data + self.reg_p.C
         r7 = result >> 7
-        self.reg_p.V = a7 == d7 and a7 != r7
+        self.reg_p.V = int(a7 == d7 and a7 != r7)
 
         self.reg_p.C = result >> 8
         self.reg_a = result
         self._set_zero_and_negative(result)
 
     def _execute_SBC(self, data, _):
-        data = ~data + 1
-        self._execute_ADC(data)
+        data = ~data & 0xFF
+        self._execute_ADC(data, _)
 
     def _execute_AND(self, data, _):
         self.reg_a = self.reg_a & data
@@ -218,8 +220,7 @@ class Cpu:
     def _execute_BIT(self, data, _):
         result = self.reg_a & data
         self.reg_p.V = data >> 6
-        self.reg_p.N = result >> 7
-        self.reg_p.Z = result == 0
+        self._set_zero_and_negative(result)
 
     def _execute_BMI(self, data, _):
         if self.reg_p.N:
@@ -260,17 +261,17 @@ class Cpu:
 
     def _execute_CMP(self, data, _):
         result = self.reg_a - data
-        self.reg_p.C = result >= 0
+        self.reg_p.C = int(result >= 0)
         self._set_zero_and_negative(result)
 
     def _execute_CPX(self, data, _):
         result = self.reg_x - data
-        self.reg_p.C = result >= 0
+        self.reg_p.C = int(result >= 0)
         self._set_zero_and_negative(result)
 
     def _execute_CPY(self, data, _):
         result = self.reg_y - data
-        self.reg_p.C = result >= 0
+        self.reg_p.C = int(result >= 0)
         self._set_zero_and_negative(result)
 
     def _execute_DEC(self, data, address):
@@ -297,16 +298,16 @@ class Cpu:
     def _execute_INY(self, *args):
         self.reg_y += 1
 
-    def _execute_JMP(self, data, _):
-        self.pc = data
+    def _execute_JMP(self, _, address):
+        self.pc = address
 
-    def _execute_JSR(self, data, _):
+    def _execute_JSR(self, _, address):
         result = self.pc - 1
         hi_result = result >> 8
         lo_result = result & 0xFF
         self._push_stack(hi_result)
         self._push_stack(lo_result)
-        self.pc = data
+        self.pc = address
 
     def _execute_RTS(self, *args):
         result = self._pop_stack() + (self._pop_stack() << 8) + 1
@@ -387,5 +388,6 @@ class Cpu:
         lo_result = result & 0xFF
         self._push_stack(hi_result)
         self._push_stack(lo_result)
-        self._push_stack(self.reg_p.to_int())
         self.reg_p.B = 1
+        self._push_stack(self.reg_p.to_int())
+        self.pc = self.memory[0xFFFE, 2]
