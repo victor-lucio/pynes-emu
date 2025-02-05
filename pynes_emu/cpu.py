@@ -1,6 +1,6 @@
 from pynes_emu.models import Addressing, ProcessorStatus, INSTRUCTION_SET
 from pynes_emu.memory import Memory
-
+from pynes_emu.utils import signed_8_bit_to_int
 
 # Where in Memory to find the start of the program
 PC_START_INDIRECT_LOCATION = 0xFFFC
@@ -203,18 +203,26 @@ class Cpu:
 
     def _execute_BCC(self, data, _):
         if not self.reg_p.C:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BCS(self, data, _):
         if self.reg_p.C:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BNE(self, data, _):
         if not self.reg_p.Z:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BEQ(self, data, _):
         if self.reg_p.Z:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BIT(self, data, _):
@@ -224,18 +232,26 @@ class Cpu:
 
     def _execute_BMI(self, data, _):
         if self.reg_p.N:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BPL(self, data, _):
         if not self.reg_p.N:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BVC(self, data, _):
         if not self.reg_p.V:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_BVS(self, data, _):
         if self.reg_p.V:
+            # check if the data is signed
+            data = signed_8_bit_to_int(data)
             self.pc += data
 
     def _execute_CLC(self, *args):
