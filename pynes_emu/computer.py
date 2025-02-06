@@ -4,6 +4,7 @@ import random
 import sys
 from pynes_emu.cpu import Cpu, PC_START_INDIRECT_LOCATION
 from pynes_emu.memory import Memory
+from pynes_emu.bus import Bus
 
 SCREEN_SCALE = 20  # Scale up pixels for visibility
 GRID_SIZE = 32
@@ -16,6 +17,8 @@ class Computer:
         self.start_address = start_address
         self._copy_program_to_memory(program)
 
+        self.bus = Bus(self.memory)
+
         if mode == "game":
             pygame.init()
             self.screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
@@ -23,7 +26,7 @@ class Computer:
             # set initial snake position
             self.memory[0x00FF] = 0x73
 
-        self.cpu = Cpu(memory=self.memory)
+        self.cpu = Cpu(bus=self.bus)
         self.cpu.reset()
 
     def _copy_program_to_memory(self, program):

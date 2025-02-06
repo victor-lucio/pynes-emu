@@ -1,5 +1,5 @@
 from pynes_emu.models import Addressing, ProcessorStatus, INSTRUCTION_SET
-from pynes_emu.memory import Memory
+from pynes_emu.bus import Bus
 from pynes_emu.utils import signed_8_bit_to_int
 
 # Where in Memory to find the start of the program
@@ -14,8 +14,8 @@ class Cpu:
     pc: int = 0x0000  # program counter
     reg_p: ProcessorStatus = ProcessorStatus()
 
-    def __init__(self, memory: Memory):
-        self.memory = memory
+    def __init__(self, bus: Bus):
+        self.bus = bus
         self.reset()
 
     @property
@@ -79,14 +79,14 @@ class Cpu:
         self.reg_s = 0xFF  # stack pointer
         self.reg_p = ProcessorStatus()  # processor status
 
-        self.pc = self.memory[PC_START_INDIRECT_LOCATION, 2]  # program counter
+        self.pc = self.bus[PC_START_INDIRECT_LOCATION, 2]  # program counter
 
     def run_next(self):
         inst_name, addressing_mode, inst_data = self._fetch_next()
         self._execute(inst_name, addressing_mode, inst_data)
 
     def _fetch_next(self):
-        op_hex = self.memory[self.pc]
+        op_hex = self.bus[self.pc]
         print(f"PC: {self.pc:04X}h ({self.pc:d}d)")
         inst_name, addressing_mode, inst_size = INSTRUCTION_SET[op_hex]
 
@@ -94,19 +94,19 @@ class Cpu:
         for _ in range(inst_size - 1):
             self.pc += 1
             inst_data = inst_data << 8
-            inst_data += self.memory[self.pc]
+            inst_data += self.bus[self.pc]
 
         self.pc += 1
 
         return inst_name, addressing_mode, inst_data
 
     def _push_stack(self, value):
-        self.memory[0x0100 + self.reg_s] = value
+        self.bus[0x0100 + self.reg_s] = value
         self.reg_s -= 1
 
     def _pop_stack(self):
         self.reg_s += 1
-        return self.memory[0x0100 + self.reg_s]
+        return self.bus[0x0100 + self.reg_s]
 
     def _set_zero_and_negative(self, value):
         value = value & 0xFF
@@ -115,7 +115,7 @@ class Cpu:
 
     def _execute(self, inst_name: str, addressing_mode: Addressing, inst_data: int):
         data, address = addressing_mode.get_addressing_data(
-            self.memory, inst_data, self.reg_x, self.reg_y
+            self.bus, inst_data, self.reg_x, self.reg_y
         )
 
         print(f"Executing {inst_name}, {addressing_mode}")
@@ -156,7 +156,7 @@ class Cpu:
     def _execute_ASL(self, data, address):
         if address is not None:
             result = data << 1
-            self.memory[address] = result
+            self.bus[address] = result
             self.reg_p.C = data >> 7
             self._set_zero_and_negative(result)
         else:
@@ -168,7 +168,7 @@ class Cpu:
     def _execute_LSR(self, data, address):
         if address is not None:
             result = data >> 1
-            self.memory[address] = result
+            self.bus[address] = result
             self.reg_p.C = data & 1
             self._set_zero_and_negative(result)
         else:
@@ -180,7 +180,7 @@ class Cpu:
     def _execute_ROL(self, data, address):
         if address is not None:
             result = (data << 1) + self.reg_p.C
-            self.memory[address] = result
+            self.bus[address] = result
             self.reg_p.C = data >> 7
             self._set_zero_and_negative(result)
         else:
@@ -192,7 +192,7 @@ class Cpu:
     def _execute_ROR(self, data, address):
         if address is not None:
             result = (data >> 1) + (self.reg_p.C << 7)
-            self.memory[address] = result
+            self.bus[address] = result
             self.reg_p.C = data & 1
             self._set_zero_and_negative(result)
         else:
@@ -292,7 +292,7 @@ class Cpu:
 
     def _execute_DEC(self, data, address):
         result = data - 1
-        self.memory[address] = result
+        self.bus[address] = result
         self._set_zero_and_negative(result)
 
     def _execute_DEX(self, *args):
@@ -305,7 +305,7 @@ class Cpu:
 
     def _execute_INC(self, data, address):
         result = data + 1
-        self.memory[address] = result
+        self.bus[address] = result
         self._set_zero_and_negative(result)
 
     def _execute_INX(self, *args):
@@ -367,13 +367,13 @@ class Cpu:
         self.pc = result
 
     def _execute_STA(self, data, address):
-        self.memory[address] = self.reg_a
+        self.bus[address] = self.reg_a
 
     def _execute_STX(self, data, address):
-        self.memory[address] = self.reg_x
+        self.bus[address] = self.reg_x
 
     def _execute_STY(self, data, address):
-        self.memory[address] = self.reg_y
+        self.bus[address] = self.reg_y
 
     def _execute_TAY(self, *args):
         self.reg_y = self.reg_a
@@ -406,4 +406,4 @@ class Cpu:
         self._push_stack(lo_result)
         self.reg_p.B = 1
         self._push_stack(self.reg_p.to_int())
-        self.pc = self.memory[0xFFFE, 2]
+        self.pc = self.bus[0xFFFE, 2]
