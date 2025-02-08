@@ -49,7 +49,7 @@ class Computer:
             for x in range(GRID_SIZE):
                 # Calculate memory address for this pixel (0x0200 + y*32 + x)
                 mem_addr = 0x0200 + (y * GRID_SIZE) + x
-                color_value = self.memory[mem_addr]
+                color_value = self.bus[mem_addr]
 
                 # Convert memory value to RGB color (example mapping)
                 # You can modify this mapping based on your needs
@@ -90,22 +90,22 @@ class Computer:
         while self.cpu.pc < self.start_address + len(self.program_hex):
             input = self._get_input()
             if input == "down":
-                self.memory[0x00FF] = 0x73
+                self.bus[0x00FF] = 0x73
             elif input == "up":
-                self.memory[0x00FF] = 0x77
+                self.bus[0x00FF] = 0x77
             elif input == "left":
-                self.memory[0x00FF] = 0x61
+                self.bus[0x00FF] = 0x61
             elif input == "right":
-                self.memory[0x00FF] = 0x64
+                self.bus[0x00FF] = 0x64
             elif input == "quit":
                 sys.exit()
 
-            self.memory[0x00FE] = random.randint(1, 16)
+            self.bus[0x00FE] = random.randint(1, 16)
 
             self.cpu.run_next()
 
             # Only redraw if screen memory has changed
-            screen_memory = self.memory[0x0200 : 0x0200 + GRID_SIZE * GRID_SIZE]
+            screen_memory = self.bus[0x0200 : 0x0200 + GRID_SIZE * GRID_SIZE]
             if not hasattr(self, "_last_screen") or screen_memory != self._last_screen:
                 self._draw_screen()
                 self._last_screen = screen_memory.copy()
