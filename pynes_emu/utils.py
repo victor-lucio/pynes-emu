@@ -8,3 +8,9 @@ def signed_8_bit_to_int(data):
     if data >> 7:
         return data - 256
     return data
+
+
+class MirroringType:
+    HORIZONTAL = 0
+    VERTICAL = 1
+    FOUR_SCREEN = 2
