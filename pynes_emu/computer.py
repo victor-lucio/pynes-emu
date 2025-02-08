@@ -10,12 +10,13 @@ from pynes_emu.cartridge_reader import CartridgeReader
 SCREEN_SCALE = 20  # Scale up pixels for visibility
 GRID_SIZE = 32
 SCREEN_SIZE = GRID_SIZE * SCREEN_SCALE
+CPU_MEMORY_SIZE = 2 * 1024
 
 
 class Computer:
     def __init__(self, rom_path, start_address=0x8000):
         self.start_address = start_address
-        self.cpu_memory = Memory(size=2 * 1024)
+        self.cpu_memory = Memory(size=CPU_MEMORY_SIZE)
         cartridge_reader = CartridgeReader(rom_path)
         self.prg_rom = self._get_rom_from_cartridge(cartridge_reader)
         
