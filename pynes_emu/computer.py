@@ -5,6 +5,7 @@ import sys
 from pynes_emu.cpu import Cpu, PC_START_INDIRECT_LOCATION
 from pynes_emu.memory import Memory
 from pynes_emu.bus import Bus
+from pynes_emu.cartridge_reader import CartridgeReader
 
 SCREEN_SCALE = 20  # Scale up pixels for visibility
 GRID_SIZE = 32
@@ -12,45 +13,27 @@ SCREEN_SIZE = GRID_SIZE * SCREEN_SCALE
 
 
 class Computer:
-    def __init__(self, program, start_address=0xF000, mode="simple"):
-        self.memory = Memory()
+    def __init__(self, rom_path, start_address=0x8000):
         self.start_address = start_address
-        self._copy_program_to_memory(program)
+        self.cpu_memory = Memory(size=2 * 1024)
+        cartridge_reader = CartridgeReader(rom_path)
+        self.prg_rom = self._get_rom_from_cartridge(cartridge_reader)
+        
+        self.bus = Bus(cpu_memory=self.cpu_memory, cartridge_prg_rom=self.prg_rom)
+        self.bus[PC_START_INDIRECT_LOCATION, 2] = self.start_address
 
-        self.bus = Bus(self.memory)
-
-        if mode == "game":
-            pygame.init()
-            self.screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
-            self.screen.fill((0, 0, 0))
-            # set initial snake position
-            self.memory[0x00FF] = 0x73
+        # init pygame
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+        self.screen.fill((0, 0, 0))
 
         self.cpu = Cpu(bus=self.bus)
         self.cpu.reset()
 
-    def _copy_program_to_memory(self, program):
-        # read program from programs folder
-        if isinstance(program, str):
-            with open(f"programs/{program}", "r") as f:
-                program_raw = list(f.readlines())
-
-        # remove comments, empty spaces and empty lines
-        program_str = [
-            line.strip() for line in program_raw if line and not line.startswith("//")
-        ]
-
-        # convert hex strings to integers
-        self.program_hex = [int(line, 16) for line in program_str]
-
-        # set the program counter to the start of the program
-        self.memory[PC_START_INDIRECT_LOCATION, 2] = self.start_address
-
-        # load program
-        self.memory[self.start_address : self.start_address + len(self.program_hex)] = (
-            self.program_hex
-        )
-        return
+    def _get_rom_from_cartridge(self, cartridge_reader: CartridgeReader):
+        prg_rom = Memory(size=cartridge_reader.prg_rom_size, base_address=0x8000)
+        prg_rom[:] = cartridge_reader.read_prg_rom()
+        return prg_rom
 
     def _get_input(self):
         for event in pygame.event.get():
