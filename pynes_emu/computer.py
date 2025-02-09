@@ -18,7 +18,7 @@ class Computer:
         self.cpu_memory = Memory(size=CPU_MEMORY_SIZE)
         cartridge_reader = CartridgeReader(rom_path)
         self.prg_rom = self._get_rom_from_cartridge(cartridge_reader)
-        
+
         self.bus = Bus(cpu_memory=self.cpu_memory, cartridge_prg_rom=self.prg_rom)
 
         # init pygame

@@ -10,7 +10,7 @@ class Memory(list):
                 raise ValueError(
                     "Memory can only be read in chunks of size 2 (16-bit reads)"
                 )
-            
+
             # Adjust the address by subtracting base_address
             adjusted_address = address - self.base_address
             lo_value = super().__getitem__(adjusted_address)
@@ -37,7 +37,7 @@ class Memory(list):
                 raise ValueError(
                     "Memory can only be read in chunks of size 2 (16-bit reads)"
                 )
-            
+
             # Adjust the address by subtracting base_address
             adjusted_address = address - self.base_address
 
@@ -54,7 +54,7 @@ class Memory(list):
             start = key.start - self.base_address if key.start is not None else 0
             stop = key.stop - self.base_address if key.stop is not None else None
             new_key = slice(start, stop, key.step)
-            
+
             if isinstance(value, list):
                 # Mask each value to 8-bit
                 masked_values = [single_value & 0xFF for single_value in value]
