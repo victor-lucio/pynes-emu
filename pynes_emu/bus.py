@@ -29,7 +29,8 @@ class Bus:
             mapped_address, memory = self._get_mapped_address_and_memory(address)
             return (mapped_address, size), memory
         else:
-            return address, None
+            mapped_address, memory = self._get_mapped_address_and_memory(address)
+            return mapped_address, memory
 
     def _get_mapped_address_and_memory(self, address: int) -> tuple[int, Memory]:
         # CPU memory
@@ -41,5 +42,7 @@ class Bus:
         # If the cartridge has 16KB of PRG ROM, the last 16KB is mirrored
         elif address >= 0x8000 and len(self.cartridge_prg_rom) == 16 * 1024:
             return (address & 0xBFFF, self.cartridge_prg_rom)
+        elif address >= 0x8000:
+            return (address, self.cartridge_prg_rom)
         else:
             return address, None

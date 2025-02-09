@@ -2,7 +2,7 @@ import pygame
 import time
 import random
 import sys
-from pynes_emu.cpu import Cpu, PC_START_INDIRECT_LOCATION
+from pynes_emu.cpu import Cpu
 from pynes_emu.memory import Memory
 from pynes_emu.bus import Bus
 from pynes_emu.cartridge_reader import CartridgeReader
@@ -14,14 +14,12 @@ CPU_MEMORY_SIZE = 2 * 1024
 
 
 class Computer:
-    def __init__(self, rom_path, start_address=0x8000):
-        self.start_address = start_address
+    def __init__(self, rom_path):
         self.cpu_memory = Memory(size=CPU_MEMORY_SIZE)
         cartridge_reader = CartridgeReader(rom_path)
         self.prg_rom = self._get_rom_from_cartridge(cartridge_reader)
         
         self.bus = Bus(cpu_memory=self.cpu_memory, cartridge_prg_rom=self.prg_rom)
-        self.bus[PC_START_INDIRECT_LOCATION, 2] = self.start_address
 
         # init pygame
         pygame.init()
@@ -33,7 +31,7 @@ class Computer:
 
     def _get_rom_from_cartridge(self, cartridge_reader: CartridgeReader):
         prg_rom = Memory(size=cartridge_reader.prg_rom_size, base_address=0x8000)
-        prg_rom[:] = cartridge_reader.read_prg_rom()
+        prg_rom[:] = list(cartridge_reader.read_prg_rom())
         return prg_rom
 
     def _get_input(self):
@@ -82,12 +80,11 @@ class Computer:
         pygame.display.flip()  # Update the display
 
     def run(self):
-        if self.cpu.pc < self.start_address + len(self.program_hex):
-            self.cpu.run_next()
-            print(self.cpu)
+        self.cpu.run_next()
+        print(self.cpu)
 
     def run_game(self):
-        while self.cpu.pc < self.start_address + len(self.program_hex):
+        while True:
             input = self._get_input()
             if input == "down":
                 self.bus[0x00FF] = 0x73

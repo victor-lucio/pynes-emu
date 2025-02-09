@@ -17,12 +17,12 @@ class CartridgeReader:
         with open(self.file_path, "rb") as f:
             self._parse_header(f.read(16))
 
-    def read_prg_rom(self, f):
+    def read_prg_rom(self):
         with open(self.file_path, "rb") as f:
             f.seek(self.prg_rom_start)
             return f.read(self.prg_rom_size)
 
-    def read_chr_rom(self, f):
+    def read_chr_rom(self):
         with open(self.file_path, "rb") as f:
             f.seek(self.chr_rom_start)
             return f.read(self.chr_rom_size)
